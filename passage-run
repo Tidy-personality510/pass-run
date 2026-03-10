@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# passage-run: inject secrets from passage into environment variables, then exec a command.
+# passage-run: inject secrets from passage/pass into environment variables, then exec a command.
 #
 # Usage:
 #   passage-run <env-file> -- <command> [args...]
-#   passage-run -e VAR=passage/path [-e ...] -- <command> [args...]
-#   passage-run <env-file> -e VAR=passage/path -- <command> [args...]
+#   passage-run -e VAR=path [-e ...] -- <command> [args...]
+#   passage-run <env-file> -e VAR=path -- <command> [args...]
 #
-# The env file maps environment variable names to passage paths:
+# The env file maps environment variable names to password store paths:
 #   SYNTHETIC_API_KEY=ai/synthetic.new/api_key
 #   GEMINI_API_KEY=redhat/google/osp/vdeemest-api-key
 #
@@ -14,6 +14,7 @@
 # Inline -e flags can supplement or override the file.
 #
 # Options:
+#   -b <backend>   Backend: "passage", "pass", or "auto" (default: auto)
 #   -e VAR=path    Add a single mapping (can be repeated)
 #   -f <file>      Env file to load (alternative to positional argument)
 #   -q             Quiet: don't print status messages to stderr
@@ -27,11 +28,12 @@ PROG="passage-run"
 QUIET=false
 DRY_RUN=false
 PARALLEL=false
+BACKEND="auto"
 ENV_FILE=""
 declare -a MAPPINGS=()
 
 usage() {
-    sed -n '3,17s/^# \{0,1\}//p' "$0"
+    sed -n '3,21s/^# \{0,1\}//p' "$0"
 }
 
 die() {
@@ -42,6 +44,21 @@ die() {
 info() {
     if [[ "$QUIET" == false ]]; then
         echo "${PROG}: $*" >&2
+    fi
+}
+
+# Detect which backend to use
+detect_backend() {
+    if [[ "$BACKEND" != "auto" ]]; then
+        command -v "$BACKEND" >/dev/null 2>&1 || die "backend '${BACKEND}' not found in PATH"
+        return
+    fi
+    if command -v passage >/dev/null 2>&1; then
+        BACKEND="passage"
+    elif command -v pass >/dev/null 2>&1; then
+        BACKEND="pass"
+    else
+        die "neither passage nor pass found in PATH (install one or use -b to specify)"
     fi
 }
 
@@ -64,8 +81,14 @@ while [[ $# -gt 0 ]]; do
             PARALLEL=true
             shift
             ;;
+        -b)
+            [[ $# -ge 2 ]] || die "-b requires an argument (passage, pass, or auto)"
+            BACKEND="$2"
+            [[ "$BACKEND" =~ ^(passage|pass|auto)$ ]] || die "invalid backend: ${BACKEND} (expected: passage, pass, or auto)"
+            shift 2
+            ;;
         -e)
-            [[ $# -ge 2 ]] || die "-e requires an argument (VAR=passage/path)"
+            [[ $# -ge 2 ]] || die "-e requires an argument (VAR=store/path)"
             MAPPINGS+=("$2")
             shift 2
             ;;
@@ -135,7 +158,7 @@ for mapping in "${MAPPINGS[@]}"; do
     if [[ "$mapping" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.+)$ ]]; then
         VARS["${BASH_REMATCH[1]}"]="${BASH_REMATCH[2]}"
     else
-        die "invalid -e mapping: ${mapping} (expected VAR=passage/path)"
+        die "invalid -e mapping: ${mapping} (expected VAR=store/path)"
     fi
 done
 
@@ -143,22 +166,22 @@ if [[ ${#VARS[@]} -eq 0 ]]; then
     die "no variable mappings found"
 fi
 
-# Verify passage is available
-command -v passage >/dev/null 2>&1 || die "passage not found in PATH"
+# Detect and verify backend
+detect_backend
 
 # Fetch secrets
-info "resolving ${#VARS[@]} secret(s) from passage..."
+info "resolving ${#VARS[@]} secret(s) via ${BACKEND}..."
 
 fetch_secret() {
     local var="$1" path="$2"
     local value
-    if ! value=$(passage show "$path" 2>/dev/null); then
-        die "failed to fetch secret for ${var} from passage path: ${path}"
+    if ! value=$("$BACKEND" show "$path" 2>/dev/null); then
+        die "failed to fetch secret for ${var} from ${BACKEND} path: ${path}"
     fi
-    # Only take the first line (password), matching passage convention
+    # Only take the first line (password), matching pass/passage convention
     value="${value%%$'\n'*}"
     if [[ -z "$value" ]]; then
-        die "empty secret for ${var} from passage path: ${path}"
+        die "empty secret for ${var} from ${BACKEND} path: ${path}"
     fi
     echo "${var}=${value}"
 }
@@ -207,7 +230,7 @@ fi
 
 # Dry run: show what would be exported
 if [[ "$DRY_RUN" == true ]]; then
-    echo "# passage-run: would export the following variables:"
+    echo "# passage-run: would export the following variables (via ${BACKEND}):"
     for var in "${!SECRETS[@]}"; do
         echo "export ${var}=<${#SECRETS[$var]} chars>"
     done

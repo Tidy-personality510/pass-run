@@ -36,12 +36,17 @@
               runHook preInstall
               install -Dm755 passage-run $out/bin/passage-run
               wrapProgram $out/bin/passage-run \
-                --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.passage ]}
+                --prefix PATH : ${
+                  pkgs.lib.makeBinPath [
+                    pkgs.passage
+                    pkgs.pass
+                  ]
+                }
               runHook postInstall
             '';
 
             meta = {
-              description = "Inject secrets from passage into environment variables at runtime";
+              description = "Inject secrets from passage/pass into environment variables at runtime";
               homepage = "https://github.com/vdemeester/passage-run";
               license = pkgs.lib.licenses.mit;
               mainProgram = "passage-run";
