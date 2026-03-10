@@ -1,4 +1,4 @@
-# passage-run
+# pass-run
 
 Inject secrets from [passage](https://github.com/FiloSottile/passage) or [pass](https://www.passwordstore.org/) into environment variables at runtime, then exec a command. No plaintext secrets on disk.
 
@@ -6,35 +6,35 @@ Inspired by [`op run`](https://developer.1password.com/docs/cli/reference/comman
 
 ## Why
 
-`.env` files store secrets in plaintext on disk. `passage-run` replaces them with a reference file that maps variable names to password store paths — safe to commit, no secrets exposed.
+`.env` files store secrets in plaintext on disk. `pass-run` replaces them with a reference file that maps variable names to password store paths — safe to commit, no secrets exposed.
 
 ```
 # .env              (secrets on disk — bad)
 API_KEY=sk-1234567890abcdef
 
-# .env.passage      (references only — safe to commit)
+# .env.pass      (references only — safe to commit)
 API_KEY=ai/openai/api_key
 ```
 
 ## Install
 
-Copy `passage-run` somewhere in your `$PATH`:
+Copy `pass-run` somewhere in your `$PATH`:
 
 ```bash
-cp passage-run ~/.local/bin/
+cp pass-run ~/.local/bin/
 ```
 
 Or with Nix (flake):
 
 ```bash
-nix run github:vdemeester/passage-run -- --help
+nix run github:vdemeester/pass-run -- --help
 ```
 
 Requires: `bash` and either `passage` or `pass`
 
 ## Backends
 
-`passage-run` supports two backends:
+`pass-run` supports two backends:
 
 | Backend | Encryption | Tool |
 |---------|-----------|------|
@@ -51,10 +51,10 @@ Both use the same `show` subcommand interface, so env files work with either.
 
 ### With an env file
 
-Create a `.env.passage` file mapping variable names to store paths:
+Create a `.env.pass` file mapping variable names to store paths:
 
 ```bash
-# .env.passage
+# .env.pass
 OPENAI_API_KEY=ai/openai/api_key
 SYNTHETIC_API_KEY=ai/synthetic.new/api_key
 DATABASE_URL=services/postgres/url
@@ -63,21 +63,21 @@ DATABASE_URL=services/postgres/url
 Run a command with those secrets injected:
 
 ```bash
-passage-run .env.passage -- my-app serve
-passage-run .env.passage -- npm start
-passage-run .env.passage -- pi --provider synthetic
+pass-run .env.pass -- my-app serve
+pass-run .env.pass -- npm start
+pass-run .env.pass -- pi --provider synthetic
 ```
 
 ### With inline mappings
 
 ```bash
-passage-run -e API_KEY=ai/openai/api_key -- curl -H "Authorization: Bearer $API_KEY" ...
+pass-run -e API_KEY=ai/openai/api_key -- curl -H "Authorization: Bearer $API_KEY" ...
 ```
 
 ### Combined
 
 ```bash
-passage-run .env.passage -e EXTRA_SECRET=path/to/secret -- my-app
+pass-run .env.pass -e EXTRA_SECRET=path/to/secret -- my-app
 ```
 
 Inline `-e` flags override values from the file.
@@ -86,10 +86,10 @@ Inline `-e` flags override values from the file.
 
 ```bash
 # Use pass (GPG) instead of passage (age)
-passage-run -b pass .env.passage -- my-app
+pass-run -b pass .env.pass -- my-app
 
 # Explicitly use passage
-passage-run -b passage .env.passage -- my-app
+pass-run -b passage .env.pass -- my-app
 ```
 
 ### Options
@@ -109,8 +109,8 @@ passage-run -b passage .env.passage -- my-app
 See what would be injected without running anything:
 
 ```bash
-$ passage-run .env.passage -n
-# passage-run: would export the following variables (via passage):
+$ pass-run .env.pass -n
+# pass-run: would export the following variables (via passage):
 export OPENAI_API_KEY=<51 chars>
 export SYNTHETIC_API_KEY=<32 chars>
 # then exec: my-app
@@ -139,18 +139,18 @@ MY_VAR_123=some/path
 ### Pi coding agent with Synthetic
 
 ```bash
-# .env.passage.pi
+# .env.pass.pi
 SYNTHETIC_API_KEY=ai/synthetic.new/api_key
 GEMINI_API_KEY=redhat/google/osp/vdeemest-api-key
 
 # Run pi with secrets injected
-passage-run .env.passage.pi -- pi --provider synthetic
+pass-run .env.pass.pi -- pi --provider synthetic
 ```
 
 ### Docker Compose
 
 ```bash
-passage-run .env.passage -- docker compose up
+pass-run .env.pass -- docker compose up
 ```
 
 ### Shell scripts
@@ -158,7 +158,7 @@ passage-run .env.passage -- docker compose up
 ```bash
 # In a wrapper script
 #!/usr/bin/env bash
-exec passage-run "$HOME/.env.passage.myapp" -- myapp "$@"
+exec pass-run "$HOME/.env.pass.myapp" -- myapp "$@"
 ```
 
 ### Migrating from pass to passage
@@ -167,10 +167,10 @@ Same env file works with both — just switch the backend:
 
 ```bash
 # With GPG-based pass
-passage-run -b pass .env.passage -- my-app
+pass-run -b pass .env.pass -- my-app
 
 # With age-based passage
-passage-run -b passage .env.passage -- my-app
+pass-run -b passage .env.pass -- my-app
 ```
 
 ## How it works

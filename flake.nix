@@ -1,5 +1,5 @@
 {
-  description = "Inject secrets from passage into environment variables at runtime";
+  description = "Inject secrets from passage/pass into environment variables at runtime";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -23,9 +23,9 @@
           pkgs = nixpkgs.legacyPackages.${system};
         in
         {
-          default = self.packages.${system}.passage-run;
-          passage-run = pkgs.stdenvNoCC.mkDerivation {
-            pname = "passage-run";
+          default = self.packages.${system}.pass-run;
+          pass-run = pkgs.stdenvNoCC.mkDerivation {
+            pname = "pass-run";
             version = "0.1.0";
 
             src = ./.;
@@ -34,8 +34,8 @@
 
             installPhase = ''
               runHook preInstall
-              install -Dm755 passage-run $out/bin/passage-run
-              wrapProgram $out/bin/passage-run \
+              install -Dm755 pass-run $out/bin/pass-run
+              wrapProgram $out/bin/pass-run \
                 --prefix PATH : ${
                   pkgs.lib.makeBinPath [
                     pkgs.passage
@@ -47,9 +47,9 @@
 
             meta = {
               description = "Inject secrets from passage/pass into environment variables at runtime";
-              homepage = "https://github.com/vdemeester/passage-run";
+              homepage = "https://github.com/vdemeester/pass-run";
               license = pkgs.lib.licenses.mit;
-              mainProgram = "passage-run";
+              mainProgram = "pass-run";
             };
           };
         }
